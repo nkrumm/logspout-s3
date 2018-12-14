@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go/service/s3"
 	_ "github.com/gliderlabs/logspout/adapters/syslog"
 	"github.com/gliderlabs/logspout/router"
@@ -71,12 +72,18 @@ func NewS3Adapter(route *router.Route) (router.LogAdapter, error) {
 	}
 
 	// Auth and session setup for AWS-S3
-	creds := credentials.NewStaticCredentials(s3Key, s3Secret, "")
-	if _, err := creds.Get(); err != nil {
-		return nil, err
+	// creds := credentials.NewStaticCredentials(s3Key, s3Secret, "")
+	// if _, err := creds.Get(); err != nil {
+	// 	return nil, err
+	// }
+
+
+	//awsConf := aws.NewConfig().WithRegion(s3Region).WithCredentials(creds)
+	awsConf, err := external.LoadDefaultAWSConfig()
+	if err != nil {
+		panic("unable to load SDK config, " + err.Error())
 	}
 
-	awsConf := aws.NewConfig().WithRegion(s3Region).WithCredentials(creds)
 	conn := s3.New(session.New(), awsConf)
 
 	a := &S3Adapter{
